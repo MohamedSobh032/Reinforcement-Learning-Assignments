@@ -24,6 +24,7 @@ parser.add_argument('--reward_goal', type=float, default=10, help='Reward for re
 parser.add_argument('--reward_bad', type=float, default=-10, help='Penalty for landing on bad cell')
 parser.add_argument('--reward_step', type=float, default=-1, help='Penalty per step to encourage shorter paths')
 parser.add_argument('--max_iters', type=int, default=1000, help='Maximum policy iteration cycles')
+parser.add_argument('--no_solve', action="store_true", help='Disable solving the maze (policy_iteration only)')
 
 # Rendering & Output
 parser.add_argument('--timestep', type=int, default=200, help='Time between moves in milliseconds')
@@ -70,45 +71,46 @@ env.metadata["render_fps"] = fps
 # Run Policy Iteration
 # ==================================================
 print("🚀 Running Policy Iteration...")
-policy, converged_iterations = policy_iteration(env, args.gamma, args.theta)
+policy, converged_iterations = policy_iteration(env, args.gamma, args.theta, args.max_iters)
 print(f"✅ Policy Iteration converged in {converged_iterations} iterations.\n")
 
-# ==================================================
-# Record Simulation Video
-# ==================================================
-print("🎞️ Recording agent trajectory...")
-video_env = RecordVideo(
-    env,
-    video_folder=video_path,
-    episode_trigger=lambda x: True,
-    name_prefix='grid_maze',
-    disable_logger=True
-)
+if args.no_solve == False:
+    # ==================================================
+    # Record Simulation Video
+    # ==================================================
+    print("🎞️ Recording agent trajectory...")
+    video_env = RecordVideo(
+        env,
+        video_folder=video_path,
+        episode_trigger=lambda x: True,
+        name_prefix='grid_maze',
+        disable_logger=True
+    )
 
-obs, _ = video_env.reset()
-terminated = truncated = False
-steps = 0
+    obs, _ = video_env.reset()
+    terminated = truncated = False
+    steps = 0
 
-while not (terminated or truncated):
-    agent_pos = video_env.env.agent_pos
-    action = policy[agent_pos[0], agent_pos[1]]
-    obs, reward, terminated, truncated, _ = video_env.step(action)
-    steps += 1
-    print(f"[Step {steps:03d}] Action={action:<2} | Pos={agent_pos} | Reward={reward:+4.1f} | Done={terminated}")
+    while not (terminated or truncated):
+        agent_pos = video_env.env.agent_pos
+        action = policy[agent_pos[0], agent_pos[1]]
+        obs, reward, terminated, truncated, _ = video_env.step(action)
+        steps += 1
+        print(f"[Step {steps:03d}] Action={action:<2} | Pos={agent_pos} | Reward={reward:+4.1f} | Done={terminated}")
 
-video_env.close()
+    video_env.close()
 
-# ==================================================
-# Final Summary
-# ==================================================
-print("\n" + "=" * 60)
-print("🏁 EXPERIMENT SUMMARY")
-print("=" * 60)
-print(f"Experiment Timestamp : {timestamp}")
-print(f"Grid Size            : {args.grid_size}x{args.grid_size}")
-print(f"Bad Cells            : {args.bads}")
-print(f"Converged In         : {converged_iterations} Policy Iterations")
-print(f"Reached Goal In      : {steps} Simulation Steps")
-print(f"Video Output Path    : {os.path.abspath(video_path)}")
-print("=" * 60 + "\n")
-print("🎉 Simulation Complete.\n")
+    # ==================================================
+    # Final Summary
+    # ==================================================
+    print("\n" + "=" * 60)
+    print("🏁 EXPERIMENT SUMMARY")
+    print("=" * 60)
+    print(f"Experiment Timestamp : {timestamp}")
+    print(f"Grid Size            : {args.grid_size}x{args.grid_size}")
+    print(f"Bad Cells            : {args.bads}")
+    print(f"Converged In         : {converged_iterations} Policy Iterations")
+    print(f"Reached Goal In      : {steps} Simulation Steps")
+    print(f"Video Output Path    : {os.path.abspath(video_path)}")
+    print("=" * 60 + "\n")
+    print("🎉 Simulation Complete.\n")

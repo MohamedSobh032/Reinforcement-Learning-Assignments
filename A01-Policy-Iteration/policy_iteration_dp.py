@@ -1,7 +1,7 @@
 import numpy as np
 from utils import directions, print_policy
 
-def policy_iteration(env, gamma, theta):
+def policy_iteration(env, gamma, theta, max_iters):
     """
     ==================================================
      Policy Iteration (Dynamic Programming)
@@ -48,7 +48,8 @@ def policy_iteration(env, gamma, theta):
     # Policy Iteration Loop
     # --------------------------------------------------
     policy_stable = False
-    while not policy_stable:
+    iters = 0
+    while not policy_stable and iters < max_iters:
         iterations += 1
         print("=" * 60)
         print(f"[Iteration {iterations}] Policy Evaluation Phase")
@@ -115,6 +116,7 @@ def policy_iteration(env, gamma, theta):
                 if new_a != old_a:
                     policy_stable = False
 
+        iters += 1
         print("  → Policy stable:", policy_stable)
         print()
 
