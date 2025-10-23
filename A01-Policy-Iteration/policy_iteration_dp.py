@@ -15,8 +15,8 @@ def policy_iteration(env, gamma, theta, max_iters):
     # Initialization
     # --------------------------------------------------
     size = env.grid_size
-    policy = np.random.choice(4, size=(size, size))  # Random initial policy
-    value = np.zeros((size, size))
+    policy = np.random.choice(4, size=(size, size)) # Start with a random action (0–3) in every cell
+    value = np.zeros((size, size))                  # Initialize all state values to 0
     iterations = 0
 
     # --------------------------------------------------
@@ -56,22 +56,24 @@ def policy_iteration(env, gamma, theta, max_iters):
         print("=" * 60)
 
         # ----------------------------------------------
-        # Policy Evaluation
+        # POLICY EVALUATION: Compute value function for current policy
         # ----------------------------------------------
         while True:
             delta = 0
             for r in range(size):
                 for c in range(size):
                     s = (r, c)
+
+                    # Skip terminal states (their value is always 0)
                     if is_terminal(s):
                         value[r, c] = 0
                         continue
 
-                    v_old = value[r, c]
-                    a = policy[r, c]
-                    v_new = 0
+                    v_old = value[r, c]     # Store current value for convergence check
+                    a = policy[r, c]        # Current policy action for this state
+                    v_new = 0               # New estimated value
 
-                    # Expected value under current policy
+                    # Compute expected return for the action under stochastic transitions
                     for direction_delta, prob in get_transitions(a):
                         ns = get_next_pos(s, direction_delta)
                         rwd = env.get_reward(ns)
@@ -80,13 +82,14 @@ def policy_iteration(env, gamma, theta, max_iters):
                     value[r, c] = v_new
                     delta = max(delta, abs(v_old - v_new))
 
+            # Stop evaluation when values have converged (small enough change)
             if delta < theta:
                 break
 
         print(f"  → Policy Evaluation converged (Δ < {theta})")
 
         # ----------------------------------------------
-        # Policy Improvement
+        # POLICY IMPROVEMENT: Update policy using the new value function
         # ----------------------------------------------
         print(f"[Iteration {iterations}] Policy Improvement Phase")
         policy_stable = True
@@ -94,21 +97,25 @@ def policy_iteration(env, gamma, theta, max_iters):
         for r in range(size):
             for c in range(size):
                 s = (r, c)
+                # Skip goal or bad states
                 if is_terminal(s):
                     continue
 
-                old_a = policy[r, c]
-                q_values = np.zeros(4)
+                old_a = policy[r, c]    # Store current action
+                q_values = np.zeros(4)  # Q-values for all 4 possible actions
 
+                # For each action, compute its expected value using the Bellman equation
                 for a in range(4):
                     for direction_delta, prob in get_transitions(a):
                         ns = get_next_pos(s, direction_delta)
                         rwd = env.get_reward(ns)
                         q_values[a] += prob * (rwd + gamma * value[ns[0], ns[1]] if not is_terminal(ns) else rwd)
 
+                # Choose the best action based on Q-values (greedy improvement)
                 new_a = np.argmax(q_values)
                 policy[r, c] = new_a
 
+                # If the action changes, the policy is not yet stable
                 if new_a != old_a:
                     policy_stable = False
 
