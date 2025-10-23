@@ -75,9 +75,7 @@ def policy_iteration(env, gamma, theta, max_iters):
                     for direction_delta, prob in get_transitions(a):
                         ns = get_next_pos(s, direction_delta)
                         rwd = env.get_reward(ns)
-                        v_new += prob * (
-                            rwd + gamma * value[ns[0], ns[1]] if not is_terminal(ns) else rwd
-                        )
+                        v_new += prob * (rwd + gamma * value[ns[0], ns[1]] if not is_terminal(ns) else rwd)
 
                     value[r, c] = v_new
                     delta = max(delta, abs(v_old - v_new))
@@ -106,9 +104,7 @@ def policy_iteration(env, gamma, theta, max_iters):
                     for direction_delta, prob in get_transitions(a):
                         ns = get_next_pos(s, direction_delta)
                         rwd = env.get_reward(ns)
-                        q_values[a] += prob * (
-                            rwd + gamma * value[ns[0], ns[1]] if not is_terminal(ns) else rwd
-                        )
+                        q_values[a] += prob * (rwd + gamma * value[ns[0], ns[1]] if not is_terminal(ns) else rwd)
 
                 new_a = np.argmax(q_values)
                 policy[r, c] = new_a
