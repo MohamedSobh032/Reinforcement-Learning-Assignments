@@ -208,4 +208,10 @@ __marimo__/
 
 # Videos
 videos
-*.txt
+
+# Experiment folders
+logs/
+plots/
+recorded_videos/
+results/
+saved_models/
